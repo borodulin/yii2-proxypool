@@ -1,5 +1,5 @@
 {
-    "name": "conquer/yii2-proxypool",
+    "name": "conquer/proxypool",
     "description": "The Proxy pooling extension for the Yii2 framework",
     "keywords": ["yii2", "proxy", "pool"],
     "homepage": "https://github.com/borodulin/yii2-proxypool",
