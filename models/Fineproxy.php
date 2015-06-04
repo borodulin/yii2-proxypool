@@ -35,7 +35,7 @@ class Fineproxy extends \yii\db\ActiveRecord
     
     public static function scan()
     {
-        foreach (static::findAll() as $model){
+        foreach (static::find()->All() as $model){
             $model->scanProxies();
         }
     }
