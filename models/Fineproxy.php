@@ -19,11 +19,30 @@ class Fineproxy extends \yii\db\ActiveRecord
 
     const FINEPROXY_API = 'http://account.fineproxy.org/api/getproxy/?';
     
+    /**
+     * @inheritdoc
+     */
     public static function tableName()
     {
         return '{{%fineproxy}}';
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['proxy_login', 'proxy_password', 'created_at', 'updated_at'], 'required'],
+            [['proxy_port', 'created_at', 'updated_at'], 'integer'],
+            [['proxy_login', 'proxy_assword'], 'string', 'max' => 100],
+            ['proxy_login', 'unique'],
+        ];
+    }
+    
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return [
@@ -51,7 +70,7 @@ class Fineproxy extends \yii\db\ActiveRecord
         $curl = new Curl($url);
         if($curl->execute()){
             if(preg_match_all('/(.*?):(\d+)/m', $curl->content, $matches, PREG_SET_ORDER)){
-                $tran=Yii::$app->db->beginTransaction();
+                $tran=\Yii::$app->db->beginTransaction();
                 foreach ($matches as $match){
                     if(Proxy::addProxy($match[1], $match[2], 'HTTP', $this->fineproxy_login, $this->fineproxy_password, $this->fineproxy_id))
                         echo "added new fineproxy: {$match[1]}:{$match[2]}\n";

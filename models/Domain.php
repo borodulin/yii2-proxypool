@@ -16,23 +16,31 @@ use yii\behaviors\TimestampBehavior;
 class Domain extends \yii\db\ActiveRecord
 {
 
+    /**
+     * @inheritdoc
+     */
     public static function tableName()
     {
         return '{{%domain}}';
     }
+    
+    
     /**
-     * @deprecated
+     * @inheritdoc
      */
-    public function relations()
+    public function rules()
     {
-        return array(
-            'validStatCount'=>array(self::STAT, 'SrvProxyStat', 'domain_id', 'condition'=>'error_cnt=0 and m_time>now()-interval 1 DAY'),
-            'validFreeCount'=>array(self::STAT, 'SrvProxyStat', 'domain_id',
-                    'join'=>"LEFT JOIN gg_request gr ON t.stat_id = gr.stat_id AND gr.status IN ('NEW', 'PROCESS')", 
-                    'condition'=>'gr.request_id IS NULL AND t.error_cnt=0 AND t.m_time>NOW() - INTERVAL 4 HOUR'),                
-        );
+        return [
+            [['proxy_address', 'proxy_port', 'created_at', 'updated_at'], 'required'],
+            [['proxy_port', 'created_at', 'updated_at', 'fineproxy_id'], 'integer'],
+            [['proxy_address', 'proxy_login', 'proxy_password'], 'string', 'max' => 100],
+            [['proxy_address', 'proxy_port'], 'unique'],
+        ];
     }
     
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return [
@@ -41,7 +49,16 @@ class Domain extends \yii\db\ActiveRecord
             ],
         ];
     }
-        
+
+    public function getValidCount()
+    {
+        return static::find()
+            ->where(['error_cnt'=>0])
+            ->andWhere(['domain_id'=>$this->domain_id])
+            ->andWhere(['>', 'updated_at', time()-24*3600])
+            ->count();
+    }
+    
     /**
      * 
      * @param string $url

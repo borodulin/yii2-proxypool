@@ -20,23 +20,31 @@ use yii\behaviors\TimestampBehavior;
  */
 class ProxyStat extends \yii\db\ActiveRecord
 {
-    
+    /**
+     * @inheritdoc
+     */
     public static function tableName()
     {
         return '{{%proxy_stat}}';
     }
     
-    public function getDomain()
+    /**
+     * @inheritdoc
+     */
+    public function rules()
     {
-        return $this->hasOne(Domain::className(), ['domain_id'=>'domain_id']);
+        return [
+            [['proxy_id', 'domain_id', 'created_at', 'updated_at'], 'required'],
+            [['proxy_id', 'domain_id', 'created_at', 'updated_at', 'request_cnt', 'success_cnt', 'error_cnt'], 'integer'],
+            [['speed_last', 'speed_avg', 'speed_savg'], 'double'],
+            [['error_message', 'cookies'], 'string'],
+            [['proxy_id', 'domain_id'], 'unique'],
+        ];
     }
     
-    public function getProxy()
-    {
-        return $this->hasOne(Proxy::className(), ['proxy_id'=>'proxy_id']);
-    }
-
-    
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return [
@@ -45,7 +53,25 @@ class ProxyStat extends \yii\db\ActiveRecord
             ],
         ];
     }
-        
+    
+    /**
+     * 
+     * @return ActiveQuery
+     */
+    public function getDomain()
+    {
+        return $this->hasOne(Domain::className(), ['domain_id'=>'domain_id']);
+    }
+    
+    /**
+     * 
+     * @return ActiveQuery
+     */
+    public function getProxy()
+    {
+        return $this->hasOne(Proxy::className(), ['proxy_id'=>'proxy_id']);
+    }
+
     /**
      *
      * @param double $value
@@ -56,6 +82,7 @@ class ProxyStat extends \yii\db\ActiveRecord
         $this->speed_avg=($this->speed_avg*$this->request_cnt+$value)/(1+$this->request_cnt);
         $this->speed_savg=sqrt((pow($this->speed_savg,2)*$this->request_cnt+pow($value,2))/(1+$this->request_cnt));
     }
+    
     /**
      * 
      * @param string $errorMessage
@@ -66,6 +93,9 @@ class ProxyStat extends \yii\db\ActiveRecord
         $this->error_message=$errorMessage;
     }
     
+    /**
+     * Check the proxies status
+     */
     public static function checkProxies()
     {
         Domain::initProxies();
@@ -126,7 +156,4 @@ class ProxyStat extends \yii\db\ActiveRecord
             $tran->commit();
         }
     }
-
-    
-    
 }

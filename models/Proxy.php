@@ -25,11 +25,30 @@ use yii\behaviors\TimestampBehavior;
 class Proxy extends \yii\db\ActiveRecord
 {
     
+    /**
+     * @inheritdoc
+     */
     public static function tableName()
     {
         return '{{%proxy}}';
     }
     
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['proxy_address', 'proxy_port', 'created_at', 'updated_at'], 'required'],
+            [['proxy_port', 'created_at', 'updated_at', 'fineproxy_id'], 'integer'],
+            [['proxy_address', 'proxy_login', 'proxy_password'], 'string', 'max' => 100],
+            [['proxy_address', 'proxy_port'], 'unique'],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
     public function behaviors()
     {
         return [
@@ -38,26 +57,27 @@ class Proxy extends \yii\db\ActiveRecord
             ],
         ];
     }
+    
     /**
      * 
      * @param string $address
      * @param integer $port
      * @param string $login
      * @param string $pwd
-     * @param string $fineproxy
+     * @param integer $fineproxy
      */
     public static function addProxy($address, $port, $login=null, $pwd=null, $fineproxy=null)
     {
-        static $command;
-        if(empty($command)){
-            $sql=<<<SQL
-INSERT INTO srv_proxy(proxy_address,proxy_port,proxy_type,proxy_login,proxy_password,fineproxy_id)
-VALUES(:address, :port, :login,:pwd,:fineproxy)
-ON DUPLICATE KEY UPDATE proxy_type=VALUES(proxy_type),proxy_login=VALUES(proxy_login),proxy_password=VALUES(proxy_password),fineproxy_id=VALUES(fineproxy_id)
-SQL;
-            $command=Yii::$app->db->createCommand($sql);
+        $model = static::findOne(['proxy_address'=>$address,'proxy_port'=>$port]);
+        if(empty($model)){
+            $model = new static();
+            $model->proxy_address = $address;
+            $model->proxy_port = $port;
         }
-        return $command->execute(compact('address','port','type','login','pwd','fineproxy'));
+        $model->proxy_login = $login;
+        $model->proxy_password = $pwd;
+        $model->fineproxy_id = $fineproxy;
+        $model->save(false);
     }
     
     /**
