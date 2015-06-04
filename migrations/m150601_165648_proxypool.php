@@ -50,7 +50,7 @@ class m150601_165648_proxypool extends Migration
         ]);
         $this->createIndex('uk_proxy', '{{%proxy}}', ['proxy_address','proxy_port'], true);
         $this->createIndex('idx_proxy_proxy_login', '{{%proxy}}', 'proxy_login');
-        $this->addForeignKey('fk_proxy_fineproxy_fineproxy_id', '{{%proxy}}', 'fineproxy_id', '{{%fineproxy}}', 'fineproxy_id');
+        $this->addForeignKey('fk_proxy_fineproxy_fineproxy_id', '{{%proxy}}', 'fineproxy_id', '{{%fineproxy}}', 'fineproxy_id', 'cascade', 'cascade');
         
         $this->createTable('{{%proxy_stat}}', [
                 'stat_id' => Schema::TYPE_PK,
@@ -70,8 +70,8 @@ class m150601_165648_proxypool extends Migration
         $this->createIndex('uk_proxy_stat', '{{%proxy_stat}}', ['proxy_id','domain_id'], true);
         $this->createIndex('idx_proxy_stat_error_cnt', '{{%proxy_stat}}', 'error_cnt');
         $this->createIndex('idx_proxy_stat_updated_at', '{{%proxy_stat}}', 'updated_at');
-        $this->addForeignKey('fk_proxy_stat_proxy_proxy_id', '{{%proxy_stat}}', 'proxy_id', '{{%proxy}}', 'proxy_id');
-        $this->addForeignKey('fk_proxy_stat_domain_domain_id', '{{%proxy_stat}}', 'domain_id', '{{%domain}}', 'domain_id');
+        $this->addForeignKey('fk_proxy_stat_proxy_proxy_id', '{{%proxy_stat}}', 'proxy_id', '{{%proxy}}', 'proxy_id', 'cascade', 'cascade');
+        $this->addForeignKey('fk_proxy_stat_domain_domain_id', '{{%proxy_stat}}', 'domain_id', '{{%domain}}', 'domain_id', 'cascade', 'cascade');
     }
     
     public function safeDown()

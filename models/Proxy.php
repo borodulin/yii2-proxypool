@@ -10,6 +10,7 @@ namespace conquer\proxypool\models;
 use conquer\helpers\Curl;
 use conquer\helpers\XPath;
 use yii\behaviors\TimestampBehavior;
+use yii\helpers\VarDumper;
 
 /**
  * 
@@ -73,15 +74,18 @@ class Proxy extends \yii\db\ActiveRecord
             $model = new static();
             $model->proxy_address = $address;
             $model->proxy_port = $port;
-        }
+            $new = true;
+        } else
+            $new = false;
         $model->proxy_login = $login;
         $model->proxy_password = $pwd;
         $model->fineproxy_id = $fineproxy;
         $model->save(false);
+        return $new;
     }
     
     /**
-     * 
+     * @deprecated
      */
     public static function scanTubeincreaser()
     {
@@ -108,18 +112,19 @@ class Proxy extends \yii\db\ActiveRecord
             $curl = new Curl("http://foxtools.ru/Proxy?page={$i}");
             if($curl->execute()){
                 $xpath = new XPath($curl->content, true);
-                $elements = $xpath->query('//*[@id="theProxyList"]/tbody/tr');
-                $tran=\Yii::$app->db->beginTransaction();
-                foreach ($elements as $element) {
-                    $proxyAddress=$element->childNodes->item(2)->textContent;
-                    $proxyPort=$element->childNodes->item(4)->textContent;
-                    $proxyType=$element->childNodes->item(10)->textContent;
-                    if(!in_array($proxyType,array('http','https')))
-                        $proxyType='http';
-                    if(Proxy::addProxy($proxyAddress, $proxyPort,$proxyType))
-                        echo "added new free proxy {$proxyAddress}:{$proxyPort}\n";
+                $elements = $xpath->query('//*[@id="theProxyList"]/tbody/tr',null,false);
+                if(!empty($elements)){
+                    $tran=\Yii::$app->db->beginTransaction();
+                    foreach ($elements as $element) {
+                        $query = $xpath->queryAll([
+                            'address' => './td[2]',
+                            'port' => './td[3]',
+                        ],$element);
+                        if(Proxy::addProxy($query['address'],$query['port']))
+                            echo "added new free proxy {$query['address']}:{$query['port']}\n";
+                    }
+                    $tran->commit();
                 }
-                $tran->commit();
             }
         }
     }  

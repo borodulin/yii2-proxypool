@@ -45,14 +45,5 @@ class ProxyController extends \yii\console\Controller
     public function actionFoxtools()
     {
         Proxy::scanFoxtools();
-    }
-    
-    /**
-     * 
-     */
-    public function actionTubeincreaser()
-    {
-        Proxy::scanTubeincreaser();
-    }
-    
+    }    
 }
