@@ -1,4 +1,9 @@
 <?php
+/**
+ * @link https://github.com/borodulin/yii2-proxypool
+ * @copyright Copyright (c) 2015 Andrey Borodulin
+ * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
+ */
 
 namespace conquer\proxypool\models;
 
@@ -6,10 +11,7 @@ use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
 
 /**
- * @property integer $validFreeCount
- * @property integer $validStatCount
- * @author admin
- *
+ * @author Andrey Borodulin
  */
 class Domain extends \yii\db\ActiveRecord
 {
@@ -18,7 +20,9 @@ class Domain extends \yii\db\ActiveRecord
 	{
 		return '{{%domain}}';
 	}
-	
+	/**
+	 * @deprecated
+	 */
 	public function relations()
 	{
 		return array(
@@ -77,8 +81,10 @@ SQL;
 	public function getProxyStat()
 	{
 		return ProxyStat::find()
-			->where('t.error_cnt=0 AND t.success_cnt>0 and t.domain_id=:domain_id',['domain_id'=>$this->domain_id])
-			->orderBy('RAND()/ LN(t.request_cnt)*t.success_cnt/t.request_cnt DESC');
+			->where(['error_cnt'=>0])
+			->andWhere(['>','success_cnt',0])
+			->andWhere(['domain_id'=>$this->domain_id])
+			->orderBy('RAND()/ LN(request_cnt)*success_cnt/request_cnt DESC');
 	}
 	
 }

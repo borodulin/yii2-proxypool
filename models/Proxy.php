@@ -1,15 +1,20 @@
 <?php
+/**
+ * @link https://github.com/borodulin/yii2-proxypool
+ * @copyright Copyright (c) 2015 Andrey Borodulin
+ * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
+ */
 
 namespace conquer\proxypool\models;
 
 use conquer\helpers\Curl;
 use conquer\helpers\XPath;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * 
  * @property string $proxy_address 
  * @property integer $proxy_port
- * @property integer $proxy_type 
  * @property string $proxy_login 
  * @property string $proxy_password 
  * @property integer $fineproxy_id
@@ -33,14 +38,21 @@ class Proxy extends \yii\db\ActiveRecord
             ],
         ];
     }
-    
-    public static function addProxy($address,$port,$type='HTTP',$login=null,$pwd=null,$fineproxy=null)
+    /**
+     * 
+     * @param string $address
+     * @param integer $port
+     * @param string $login
+     * @param string $pwd
+     * @param string $fineproxy
+     */
+    public static function addProxy($address, $port, $login=null, $pwd=null, $fineproxy=null)
     {
         static $command;
         if(empty($command)){
             $sql=<<<SQL
 INSERT INTO srv_proxy(proxy_address,proxy_port,proxy_type,proxy_login,proxy_password,fineproxy_id)
-VALUES(:address,:port,:type,:login,:pwd,:fineproxy)
+VALUES(:address, :port, :login,:pwd,:fineproxy)
 ON DUPLICATE KEY UPDATE proxy_type=VALUES(proxy_type),proxy_login=VALUES(proxy_login),proxy_password=VALUES(proxy_password),fineproxy_id=VALUES(fineproxy_id)
 SQL;
             $command=Yii::$app->db->createCommand($sql);
@@ -48,7 +60,10 @@ SQL;
         return $command->execute(compact('address','port','type','login','pwd','fineproxy'));
     }
     
-    public static function scanList()
+    /**
+     * 
+     */
+    public static function scanTubeincreaser()
     {
         $curl = new Curl('http://www.tubeincreaser.com/proxylist.txt');
         if($curl->execute()){
@@ -64,7 +79,10 @@ SQL;
         }
     }
     
-    public static function scanList2()
+    /**
+     * 
+     */
+    public static function scanFoxtools()
     {
         for ($i = 1; $i < 41; $i++) {
             $curl = new Curl("http://foxtools.ru/Proxy?page={$i}");

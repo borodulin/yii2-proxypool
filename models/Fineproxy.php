@@ -1,8 +1,14 @@
 <?php
+/**
+ * @link https://github.com/borodulin/yii2-proxypool
+ * @copyright Copyright (c) 2015 Andrey Borodulin
+ * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
+ */
 
 namespace conquer\proxypool\models;
 
 use conquer\helpers\Curl;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * 
@@ -18,6 +24,15 @@ class Fineproxy extends \yii\db\ActiveRecord
 		return '{{%fineproxy}}';
 	}
 
+	public function behaviors()
+	{
+	    return [
+            [
+                'class' => TimestampBehavior::className(),
+            ],
+	    ];
+	}
+	
 	public static function scan()
 	{
 		foreach (static::findAll() as $model){

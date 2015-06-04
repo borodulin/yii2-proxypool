@@ -1,15 +1,21 @@
 <?php
+/**
+ * @link https://github.com/borodulin/yii2-proxypool
+ * @copyright Copyright (c) 2015 Andrey Borodulin
+ * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
+ */
 
 namespace conquer\proxypool\models;
 
 use yii\db\ActiveQuery;
 use conquer\helpers\Curl;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * @property Domain $domain
  * @property Proxy $proxy
  * 
- * @author borodulin-av
+ * @author Andrey Borodulin
  *
  */
 class ProxyStat extends \yii\db\ActiveRecord
@@ -35,7 +41,7 @@ class ProxyStat extends \yii\db\ActiveRecord
 	{
 		return [
 			[
-				'class' => \yii\behaviors\TimestampBehavior::className(),
+				'class' => TimestampBehavior::className(),
 			],
 		];
 	}

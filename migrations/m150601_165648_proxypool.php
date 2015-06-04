@@ -1,8 +1,18 @@
 <?php
+/**
+ * @link https://github.com/borodulin/yii2-proxypool
+ * @copyright Copyright (c) 2015 Andrey Borodulin
+ * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
+ */
 
 use yii\db\Schema;
 use yii\db\Migration;
 
+/**
+ * 
+ * @author Andrey Borodulin
+ *
+ */
 class m150601_165648_proxypool extends Migration
 {
     // Use safeUp/safeDown to run migration code within a transaction
@@ -32,7 +42,6 @@ class m150601_165648_proxypool extends Migration
                 'proxy_id' => Schema::TYPE_PK,
                 'proxy_address' => Schema::TYPE_STRING . ' NOT NULL',
                 'proxy_port' => Schema::TYPE_INTEGER . ' NOT NULL',
-                'proxy_type' => Schema::TYPE_SMALLINT . ' NOT NULL',
                 'proxy_login' => Schema::TYPE_STRING .'(100)',
                 'proxy_password' => Schema::TYPE_STRING .'(100)',
                 'created_at' => Schema::TYPE_INTEGER . ' NOT NULL',

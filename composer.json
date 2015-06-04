@@ -1,0 +1,33 @@
+{
+    "name": "conquer/yii2-proxypool",
+    "description": "The Proxy pooling extension for the Yii2 framework",
+    "keywords": ["yii2", "proxy", "pool"],
+    "homepage": "https://github.com/borodulin/yii2-proxypool",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "issues": "https://github.com/borodulin/yii2-proxypool/issues",
+        "source": "https://github.com/borodulin/yii2-proxypool"
+    },
+    "authors": [
+        {
+            "name": "Andrey Borodulin",
+            "email": "borodulin@gmail.com",
+            "homepage": "https://github.com/borodulin/yii2-proxypool"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": ">=2.0.4",
+        "conquer/helpers": "~2.0.1"
+    },
+    "autoload": {
+        "psr-4": {
+        	"conquer\\proxypool\\": ""
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0.x-dev"
+        }
+    }
+}
