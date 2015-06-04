@@ -9,6 +9,7 @@ namespace conquer\proxypool\models;
 
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveQuery;
 
 /**
  * @author Andrey Borodulin
@@ -50,13 +51,16 @@ class Domain extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getValidCount()
+    /**
+     * Return a query to retrieve valid proxies for current domain
+     * @return \yii\db\ActiveQuery
+     */
+    public function findValid()
     {
         return static::find()
             ->where(['error_cnt'=>0])
             ->andWhere(['domain_id'=>$this->domain_id])
-            ->andWhere(['>', 'updated_at', time()-24*3600])
-            ->count();
+            ->andWhere(['>', 'updated_at', time()-24*3600]);
     }
     
     /**
