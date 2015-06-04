@@ -104,13 +104,14 @@ class ProxyStat extends \yii\db\ActiveRecord
         
         /* @var $proxyStats ProxyStat[] */
         $proxyStats=ProxyStat::find()
-            ->where(['>', 'updated_at', $time])
+            ->from(['t'=>static::tableName()])
+            ->where(['<', 't.updated_at', $time])
             ->andWhere([ '<', 'error_cnt', 20])
             ->innerJoinWith(['proxy','domain'])
-            ->andWhere(['domain.check_url is not null'])
+            ->andWhere(['is not', 'check_url', null])
             ->indexBy('stat_id')
             ->limit(500)
-            ->orderBy('RAND()')
+            ->orderBy(['t.updated_at'=>SORT_ASC, 'RAND()'=>SORT_ASC])
             ->all();
         
         if(count($proxyStats)>0)
@@ -145,12 +146,12 @@ class ProxyStat extends \yii\db\ActiveRecord
                         $proxyStat->success_cnt++;
                         $proxyStat->error_cnt=0;
                         $proxyStat->error_message=null;
-                        $proxyStat->setSpeedLast($info['total_time']);
+                        $proxyStat->setSpeedLast($url->info['total_time']);
                     }
                 } else {
                     $proxyStat->handleError($url->errorMessage);
                 }
-                $proxyStat->save();
+                $proxyStat->save(false);
             }
             
             $tran->commit();
