@@ -5,14 +5,17 @@
  * @license https://github.com/borodulin/yii2-proxypool/blob/master/LICENSE
  */
 
+namespace conquer\proxypool;
+
 use conquer\proxypool\console\ProxyController;
 
 /**
  * 
  * @author Andrey Borodulin
  */
-class Module extends \yii\base\Module implements BootstrapInterface
+class Module extends \yii\base\Module implements \yii\base\BootstrapInterface
 {
+    
     /**
      * @inheritdoc
      */
@@ -27,7 +30,6 @@ class Module extends \yii\base\Module implements BootstrapInterface
         } elseif ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
                     'class' => ProxyController::className(),
-                    'module' => $this,
             ];
         }
     }    

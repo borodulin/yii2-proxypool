@@ -32,7 +32,7 @@ class m150601_165648_proxypool extends Migration
         $this->createTable('{{%fineproxy}}', [
             'fineproxy_id' => Schema::TYPE_PK,
             'fineproxy_login' => Schema::TYPE_STRING . '(100) NOT NULL',
-            'fineproxy_password' => Schema::TYPE_INTEGER . '(100) NOT NULL',
+            'fineproxy_password' => Schema::TYPE_STRING . '(100) NOT NULL',
             'created_at' => Schema::TYPE_INTEGER . ' NOT NULL',
             'updated_at' => Schema::TYPE_INTEGER . ' NOT NULL',
         ]);
