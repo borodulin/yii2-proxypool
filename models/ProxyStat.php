@@ -14,6 +14,16 @@ use conquer\helpers\CurlTrait;
 
 
 /**
+ * 
+ * @property string $url
+ * @property string $header   
+ * @property array $options
+ * @property string $content
+ * @property integer $errorCode
+ * @property string $errorMessage
+ * @property string $cookies
+ * @property array $info
+ * 
  * @property Domain $domain
  * @property Proxy $proxy
  * 
@@ -183,6 +193,9 @@ class ProxyStat extends \yii\db\ActiveRecord
             $options[CURLOPT_PROXYUSERPWD]=$userLogin;
         }
         
+        if(!empty($this->cookies))
+            $options[CURLOPT_COOKIE] = $this->cookies;
+        
         $this->options = $options;
         
         if(!is_null($url))
@@ -229,6 +242,9 @@ class ProxyStat extends \yii\db\ActiveRecord
                     $options[CURLOPT_PROXYUSERPWD]=$userLogin;
                 }
         
+                if(!empty($proxyStat->cookies))
+                    $options[CURLOPT_COOKIE] = $proxyStat->cookies; 
+                
                 $proxyStat->setOptions($options);
             }
         
@@ -247,7 +263,7 @@ class ProxyStat extends \yii\db\ActiveRecord
                     $proxyStat->error_cnt=0;
                     $proxyStat->error_message=null;
                     $proxyStat->setSpeedLast($proxyStat->info['total_time']);
-                    $proxyStat->cookies = $proxyStat->cookies;
+                    $proxyStat->cookies = $proxyStat->getCookies();
                 }
                                 
                 $proxyStat->save(false);
