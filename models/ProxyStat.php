@@ -8,8 +8,10 @@
 namespace conquer\proxypool\models;
 
 use yii\db\ActiveQuery;
-use conquer\helpers\Curl;
 use yii\behaviors\TimestampBehavior;
+use conquer\helpers\CurlTrait;
+
+
 
 /**
  * @property Domain $domain
@@ -20,6 +22,9 @@ use yii\behaviors\TimestampBehavior;
  */
 class ProxyStat extends \yii\db\ActiveRecord
 {
+    
+    use CurlTrait;
+    
     /**
      * @inheritdoc
      */
@@ -116,13 +121,13 @@ class ProxyStat extends \yii\db\ActiveRecord
         
         if(count($proxyStats)>0)
         {
-            $urls = [];
-            
-            foreach ($proxyStats as $key => $proxyStat){
+
+            foreach ($proxyStats as $proxyStat){
                 $proxy = $proxyStat->proxy;
                 $options = [
-                    CURLOPT_PROXY => $proxyStat->proxy->proxy_address,
-                    CURLOPT_PROXYPORT => $proxyStat->proxy->proxy_port,
+                    CURLOPT_PROXY => $proxy->proxy_address,
+                    CURLOPT_PROXYPORT => $proxy->proxy_port,
+                    CURLOPT_URL => $proxyStat->domain->check_url,
                 ];
                 if(!empty($proxy->proxy_login)){
                     $userLogin=$proxy->proxy_login;
@@ -130,16 +135,17 @@ class ProxyStat extends \yii\db\ActiveRecord
                         $userLogin.=':'.$proxy->proxy_password;
                     $options[CURLOPT_PROXYUSERPWD]=$userLogin;
                 }
-                $urls[$key] = new Curl($proxyStat->domain->check_url, $options);
+                
+                $proxyStat->options = $options;
             }
             
-            Curl::multiExec($urls);
+            static::curl_multi_exec($proxyStats);
             
             $tran=\Yii::$app->db->beginTransaction();
             
-            foreach ($urls as $key => $url){
-                $proxyStat = $proxyStats[$key];
-                if($url->isHttpOK()){
+            foreach ($proxyStats as $proxyStat) {
+                
+                if($proxyStat->isHttpOK()){
                     if(isset($proxyStat->domain->check_content)&& (!preg_match($proxyStat->domain->check_content, $url->content))) {
                         $proxyStat->handleError('Invalid content');
                     } else {
@@ -157,4 +163,98 @@ class ProxyStat extends \yii\db\ActiveRecord
             $tran->commit();
         }
     }
+    
+    /**
+     * Executes the single curl
+     * @return boolean
+     */
+    public function execute($url = null, $postData = null)
+    {
+        $proxy = $this->proxy;
+        $options = [
+            CURLOPT_PROXY => $proxy->proxy_address,
+            CURLOPT_PROXYPORT => $proxy->proxy_port,
+        ];
+
+        if(!empty($proxy->proxy_login)){
+            $userLogin=$proxy->proxy_login;
+            if(!empty($proxy->proxy_password))
+                $userLogin.=':'.$proxy->proxy_password;
+            $options[CURLOPT_PROXYUSERPWD]=$userLogin;
+        }
+        
+        $this->options = $options;
+        
+        if(!is_null($url))
+            $this->url = $url;
+
+        if(!is_null($postData))
+        
+        $this->curl_execute();
+        
+        if($this->errorCode){
+            $this->handleError($this->errorMessage);
+        } else if(!$this->isHttpOK()){
+            $this->error_message = $this->content;
+        } else {
+            $this->success_cnt++;
+            $this->error_cnt=0;
+            $this->error_message=null;
+            $this->setSpeedLast($this->info['total_time']);
+            $this->cookies = $this->cookies;
+        }
+        $this->save(false);
+        return $this->error_cnt === 0;
+    }
+    
+    /**
+     * Executes parallels curls
+     * @param ProxyStat[] $urls
+     */
+    public static function multiExec($proxyStats)
+    {
+        if(count($proxyStats)>0)
+        {
+            foreach ($proxyStats as $proxyStat){
+                $proxy = $proxyStat->proxy;
+                $options = [
+                    CURLOPT_PROXY => $proxy->proxy_address,
+                    CURLOPT_PROXYPORT => $proxy->proxy_port,
+                    CURLOPT_URL => $proxyStat->domain->check_url,
+                ];
+                if(!empty($proxy->proxy_login)){
+                    $userLogin=$proxy->proxy_login;
+                    if(!empty($proxy->proxy_password))
+                        $userLogin.=':'.$proxy->proxy_password;
+                    $options[CURLOPT_PROXYUSERPWD]=$userLogin;
+                }
+        
+                $proxyStat->setOptions($options);
+            }
+        
+            static::curl_multi_exec($proxyStats);
+        
+            $tran=\Yii::$app->db->beginTransaction();
+        
+            foreach ($proxyStats as $proxyStat) {
+        
+                if($proxyStat->errorCode){
+                    $proxyStat->handleError($this->errorMessage);
+                } else if(!$proxyStat->isHttpOK()){
+                    $proxyStat->error_message = $proxyStat->content;
+                } else {
+                    $proxyStat->success_cnt++;
+                    $proxyStat->error_cnt=0;
+                    $proxyStat->error_message=null;
+                    $proxyStat->setSpeedLast($proxyStat->info['total_time']);
+                    $proxyStat->cookies = $proxyStat->cookies;
+                }
+                                
+                $proxyStat->save(false);
+            }
+        
+            $tran->commit();
+        }
+    }
+
 }

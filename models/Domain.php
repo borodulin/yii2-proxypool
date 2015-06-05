@@ -9,7 +9,6 @@ namespace conquer\proxypool\models;
 
 use yii\db\Expression;
 use yii\behaviors\TimestampBehavior;
-use yii\db\ActiveQuery;
 
 /**
  * @author Andrey Borodulin
@@ -17,6 +16,8 @@ use yii\db\ActiveQuery;
 class Domain extends \yii\db\ActiveRecord
 {
 
+    private $_proxyStats;
+    
     /**
      * @inheritdoc
      */
@@ -51,16 +52,13 @@ class Domain extends \yii\db\ActiveRecord
         ];
     }
 
-    /**
-     * Return a query to retrieve valid proxies for current domain
-     * @return \yii\db\ActiveQuery
-     */
-    public function findValid()
+    public function getValidCount()
     {
         return static::find()
             ->where(['error_cnt'=>0])
             ->andWhere(['domain_id'=>$this->domain_id])
-            ->andWhere(['>', 'updated_at', time()-24*3600]);
+            ->andWhere(['>', 'updated_at', time()-24*3600])
+            ->count();
     }
     
     /**
@@ -90,22 +88,35 @@ INSERT INTO {{%proxy_stat}}(proxy_id, domain_id, created_at, updated_at)
     LEFT JOIN {{%proxy_stat}} sps ON sd.domain_id = sps.domain_id AND sp.proxy_id = sps.proxy_id
   WHERE sps.stat_id IS NULL
 SQL;
-        Yii::$app->db->createCommand($sql)
+        \Yii::$app->db->createCommand($sql)
             ->bindValues(['created_at'=>time(),'updated_at'=>time()-1000])
             ->execute();
     }
     
     /**
      * 
-     * @return \conquer\proxypool\models\ProxyStat
+     * @return \yii\db\ActiveQuery
      */
-    public function getProxyStat()
+    public function getValidProxies()
     {
-        return ProxyStat::find()
+        /* @var $query \yii\db\ActiveQuery */
+        $query = ProxyStat::find()
             ->where(['error_cnt'=>0])
             ->andWhere(['>','success_cnt',0])
-            ->andWhere(['domain_id'=>$this->domain_id])
-            ->orderBy('RAND()/ LN(request_cnt)*success_cnt/request_cnt DESC');
+            ->indexBy('stat_id')
+            ->orderBy(['RAND() / LN(request_cnt)*success_cnt/request_cnt DESC'=>SORT_ASC]);
+        $query->link = ['domain_id'=>'domain_id'];
+        $query->primaryModel = $this;
+        $query->multiple = true;
+        return $query;
+    }
+
+    
+    
+    
+    public function nextProxyStat()
+    {
+        // $this->validProxies
     }
     
 }
