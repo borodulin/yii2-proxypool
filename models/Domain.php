@@ -33,10 +33,11 @@ class Domain extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['proxy_address', 'proxy_port', 'created_at', 'updated_at'], 'required'],
-            [['proxy_port', 'created_at', 'updated_at', 'fineproxy_id'], 'integer'],
-            [['proxy_address', 'proxy_login', 'proxy_password'], 'string', 'max' => 100],
-            [['proxy_address', 'proxy_port'], 'unique'],
+            [['domain_name'], 'required'],
+            [['created_at', 'updated_at'], 'integer'],
+            [['domain_name', 'check_url', 'check_content'], 'string', 'max' => 255],
+            [['check_url'], 'url'],
+            [['domain_name'], 'unique']
         ];
     }
     

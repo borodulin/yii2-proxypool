@@ -40,10 +40,28 @@ class Proxy extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['proxy_address', 'proxy_port', 'created_at', 'updated_at'], 'required'],
+            [['proxy_address', 'proxy_port'], 'required'],
             [['proxy_port', 'created_at', 'updated_at', 'fineproxy_id'], 'integer'],
-            [['proxy_address', 'proxy_login', 'proxy_password'], 'string', 'max' => 100],
-            [['proxy_address', 'proxy_port'], 'unique'],
+            [['proxy_address'], 'string', 'max' => 255],
+            [['proxy_login', 'proxy_password'], 'string', 'max' => 100],
+            [['proxy_address', 'proxy_port'], 'unique', 'targetAttribute' => ['proxy_address', 'proxy_port'], 'message' => 'The combination of Proxy Address and Proxy Port has already been taken.']
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'proxy_id' => 'Proxy ID',
+            'proxy_address' => 'Proxy Address',
+            'proxy_port' => 'Proxy Port',
+            'proxy_login' => 'Proxy Login',
+            'proxy_password' => 'Proxy Password',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+            'fineproxy_id' => 'Fineproxy ID',
         ];
     }
 
@@ -57,6 +75,22 @@ class Proxy extends \yii\db\ActiveRecord
                 'class' => TimestampBehavior::className(),
             ],
         ];
+    }
+    
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getFineproxy()
+    {
+        return $this->hasOne(Fineproxy::className(), ['fineproxy_id' => 'fineproxy_id']);
+    }
+    
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProxyStats()
+    {
+        return $this->hasMany(ProxyStat::className(), ['proxy_id' => 'proxy_id']);
     }
     
     /**

@@ -33,10 +33,24 @@ class Fineproxy extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['proxy_login', 'proxy_password', 'created_at', 'updated_at'], 'required'],
-            [['proxy_port', 'created_at', 'updated_at'], 'integer'],
-            [['proxy_login', 'proxy_assword'], 'string', 'max' => 100],
-            ['proxy_login', 'unique'],
+            [['fineproxy_login', 'fineproxy_password'], 'required'],
+            [['created_at', 'updated_at'], 'integer'],
+            [['fineproxy_login', 'fineproxy_password'], 'string', 'max' => 100],
+            [['fineproxy_login'], 'unique']
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels()
+    {
+        return [
+            'fineproxy_id' => 'Fineproxy ID',
+            'fineproxy_login' => 'Fineproxy Login',
+            'fineproxy_password' => 'Fineproxy Password',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
         ];
     }
     
