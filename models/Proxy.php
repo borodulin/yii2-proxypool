@@ -9,7 +9,6 @@ namespace conquer\proxypool\models;
 
 use conquer\helpers\Curl;
 use conquer\helpers\XPath;
-use yii\behaviors\TimestampBehavior;
 use yii\helpers\VarDumper;
 
 /**
@@ -31,7 +30,7 @@ class Proxy extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%proxy}}';
+        return '{{%pool_proxy}}';
     }
     
     /**
@@ -71,9 +70,7 @@ class Proxy extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            [
-                'class' => TimestampBehavior::className(),
-            ],
+            \yii\behaviors\TimestampBehavior::className(),
         ];
     }
     

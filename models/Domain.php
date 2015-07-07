@@ -8,7 +8,6 @@
 namespace conquer\proxypool\models;
 
 use yii\db\Expression;
-use yii\behaviors\TimestampBehavior;
 
 /**
  * @author Andrey Borodulin
@@ -23,7 +22,7 @@ class Domain extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%domain}}';
+        return '{{%pool_domain}}';
     }
     
     
@@ -47,9 +46,7 @@ class Domain extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            [
-                'class' => TimestampBehavior::className(),
-            ],
+            \yii\behaviors\TimestampBehavior::className(),
         ];
     }
 
@@ -82,11 +79,11 @@ class Domain extends \yii\db\ActiveRecord
     public static function initProxies()
     {
         $sql=<<<SQL
-INSERT INTO {{%proxy_stat}}(proxy_id, domain_id, created_at, updated_at)
+INSERT INTO {{%pool_proxy_stat}}(proxy_id, domain_id, created_at, updated_at)
   SELECT sp.proxy_id, sd.domain_id, :created_at, :updated_at
-  FROM {{%domain}} sd
-    JOIN {{%proxy}} sp
-    LEFT JOIN {{%proxy_stat}} sps ON sd.domain_id = sps.domain_id AND sp.proxy_id = sps.proxy_id
+  FROM {{%pool_domain}} sd
+    JOIN {{%pool_proxy}} sp
+    LEFT JOIN {{%pool_proxy_stat}} sps ON sd.domain_id = sps.domain_id AND sp.proxy_id = sps.proxy_id
   WHERE sps.stat_id IS NULL
 SQL;
         \Yii::$app->db->createCommand($sql)

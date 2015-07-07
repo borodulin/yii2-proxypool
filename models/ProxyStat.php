@@ -8,7 +8,6 @@
 namespace conquer\proxypool\models;
 
 use yii\db\ActiveQuery;
-use yii\behaviors\TimestampBehavior;
 use conquer\helpers\CurlTrait;
 
 
@@ -40,7 +39,7 @@ class ProxyStat extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%proxy_stat}}';
+        return '{{%pool_proxy_stat}}';
     }
     
     /**
@@ -63,9 +62,7 @@ class ProxyStat extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            [
-                'class' => TimestampBehavior::className(),
-            ],
+            \yii\behaviors\TimestampBehavior::className(),
         ];
     }
     

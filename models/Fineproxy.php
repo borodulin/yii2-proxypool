@@ -8,7 +8,6 @@
 namespace conquer\proxypool\models;
 
 use conquer\helpers\Curl;
-use yii\behaviors\TimestampBehavior;
 
 /**
  * 
@@ -24,7 +23,7 @@ class Fineproxy extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%fineproxy}}';
+        return '{{%pool_fineproxy}}';
     }
 
     /**
@@ -60,9 +59,7 @@ class Fineproxy extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            [
-                'class' => TimestampBehavior::className(),
-            ],
+            \yii\behaviors\TimestampBehavior::className(),
         ];
     }
     
