@@ -90,9 +90,9 @@ class ProxyStat extends \yii\db\ActiveRecord
      */
     public function setSpeedLast($value)
     {
-        $this->speed_last=$value;
-        $this->speed_avg=($this->speed_avg*$this->request_cnt+$value)/(1+$this->request_cnt);
-        $this->speed_savg=sqrt((pow($this->speed_savg,2)*$this->request_cnt+pow($value,2))/(1+$this->request_cnt));
+        $this->speed_last = $value;
+        $this->speed_avg = ($this->speed_avg*$this->request_cnt+$value)/(1+$this->request_cnt);
+        $this->speed_savg = sqrt((pow($this->speed_savg,2)*$this->request_cnt+pow($value,2))/(1+$this->request_cnt));
     }
     
     /**
@@ -102,7 +102,7 @@ class ProxyStat extends \yii\db\ActiveRecord
     public function handleError($errorMessage)
     {
         $this->error_cnt++;
-        $this->error_message=$errorMessage;
+        $this->error_message = $errorMessage;
     }
     
     /**
@@ -115,7 +115,7 @@ class ProxyStat extends \yii\db\ActiveRecord
         $time = time()-6*60*60;
         
         /* @var $proxyStats ProxyStat[] */
-        $proxyStats=ProxyStat::find()
+        $proxyStats = ProxyStat::find()
             ->from(['t'=>static::tableName()])
             ->where(['<', 't.updated_at', $time])
             ->andWhere([ '<', 'error_cnt', 20])
@@ -123,37 +123,34 @@ class ProxyStat extends \yii\db\ActiveRecord
             ->andWhere(['is not', 'check_url', null])
             ->indexBy('stat_id')
             ->limit(500)
-            ->orderBy(['t.updated_at'=>SORT_ASC, 'RAND()'=>SORT_ASC])
+            ->orderBy(['t.updated_at' => SORT_ASC, 'RAND()' => SORT_ASC])
             ->all();
         
-        if(count($proxyStats)>0)
-        {
-
-            foreach ($proxyStats as $proxyStat){
+        if (count($proxyStats)>0) {
+            foreach ($proxyStats as $proxyStat) {
                 $proxy = $proxyStat->proxy;
                 $options = [
                     CURLOPT_PROXY => $proxy->proxy_address,
                     CURLOPT_PROXYPORT => $proxy->proxy_port,
                     CURLOPT_URL => $proxyStat->domain->check_url,
                 ];
-                if(!empty($proxy->proxy_login)){
-                    $userLogin=$proxy->proxy_login;
-                    if(!empty($proxy->proxy_password))
-                        $userLogin.=':'.$proxy->proxy_password;
-                    $options[CURLOPT_PROXYUSERPWD]=$userLogin;
+                if (!empty($proxy->proxy_login)) {
+                    $userLogin = $proxy->proxy_login;
+                    if (!empty($proxy->proxy_password)) {
+                        $userLogin .= ':'.$proxy->proxy_password;
+                    }
+                    $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
-                
                 $proxyStat->options = $options;
             }
             
             static::curl_multi_exec($proxyStats);
             
-            $tran=\Yii::$app->db->beginTransaction();
+            $tran = \Yii::$app->db->beginTransaction();
             
-            foreach ($proxyStats as $proxyStat) {
-                
-                if($proxyStat->isHttpOK()){
-                    if(isset($proxyStat->domain->check_content)&& (!preg_match($proxyStat->domain->check_content, $url->content))) {
+            foreach ($proxyStats as $proxyStat) {   
+                if ($proxyStat->isHttpOK()) {
+                    if (isset($proxyStat->domain->check_content) && (!preg_match($proxyStat->domain->check_content, $url->content))) {
                         $proxyStat->handleError('Invalid content');
                     } else {
                         $proxyStat->success_cnt++;
@@ -166,7 +163,6 @@ class ProxyStat extends \yii\db\ActiveRecord
                 }
                 $proxyStat->save(false);
             }
-            
             $tran->commit();
         }
     }
@@ -183,28 +179,31 @@ class ProxyStat extends \yii\db\ActiveRecord
             CURLOPT_PROXYPORT => $proxy->proxy_port,
         ];
 
-        if(!empty($proxy->proxy_login)){
+        if (!empty($proxy->proxy_login)) {
             $userLogin=$proxy->proxy_login;
-            if(!empty($proxy->proxy_password))
+            if (!empty($proxy->proxy_password)) {
                 $userLogin.=':'.$proxy->proxy_password;
+            }
             $options[CURLOPT_PROXYUSERPWD]=$userLogin;
         }
         
-        if(!empty($this->cookies))
+        if (!empty($this->cookies)) {
             $options[CURLOPT_COOKIE] = $this->cookies;
-        
+        }
         $this->options = $options;
         
-        if(!is_null($url))
+        if (!is_null($url)) {
             $this->url = $url;
-
-        if(!is_null($postData))
+        }
+        if (!is_null($postData)) {
+            $this->setPostData($postData);
+        }
         
         $this->curl_execute();
         
-        if($this->errorCode){
+        if ($this->errorCode) {
             $this->handleError($this->errorMessage);
-        } else if(!$this->isHttpOK()){
+        } elseif (!$this->isHttpOK()) {
             $this->error_message = $this->content;
         } else {
             $this->success_cnt++;
@@ -223,37 +222,34 @@ class ProxyStat extends \yii\db\ActiveRecord
      */
     public static function multiExec($proxyStats)
     {
-        if(count($proxyStats)>0)
-        {
-            foreach ($proxyStats as $proxyStat){
+        if (count($proxyStats)>0) {
+            foreach ($proxyStats as $proxyStat) {
                 $proxy = $proxyStat->proxy;
                 $options = [
                     CURLOPT_PROXY => $proxy->proxy_address,
                     CURLOPT_PROXYPORT => $proxy->proxy_port,
                     CURLOPT_URL => $proxyStat->domain->check_url,
                 ];
-                if(!empty($proxy->proxy_login)){
+                if (!empty($proxy->proxy_login)) {
                     $userLogin=$proxy->proxy_login;
-                    if(!empty($proxy->proxy_password))
+                    if (!empty($proxy->proxy_password)) {
                         $userLogin.=':'.$proxy->proxy_password;
+                    }
                     $options[CURLOPT_PROXYUSERPWD]=$userLogin;
                 }
-        
-                if(!empty($proxyStat->cookies))
+                if (!empty($proxyStat->cookies)) {
                     $options[CURLOPT_COOKIE] = $proxyStat->cookies; 
-                
+                }
                 $proxyStat->setOptions($options);
             }
-        
             static::curl_multi_exec($proxyStats);
         
             $tran=\Yii::$app->db->beginTransaction();
         
             foreach ($proxyStats as $proxyStat) {
-        
-                if($proxyStat->errorCode){
+                if ($proxyStat->errorCode) {
                     $proxyStat->handleError($this->errorMessage);
-                } else if(!$proxyStat->isHttpOK()){
+                } elseif (!$proxyStat->isHttpOK()) {
                     $proxyStat->error_message = $proxyStat->content;
                 } else {
                     $proxyStat->success_cnt++;
@@ -261,11 +257,9 @@ class ProxyStat extends \yii\db\ActiveRecord
                     $proxyStat->error_message=null;
                     $proxyStat->setSpeedLast($proxyStat->info['total_time']);
                     $proxyStat->cookies = $proxyStat->getCookies();
-                }
-                                
+                }                   
                 $proxyStat->save(false);
             }
-        
             $tran->commit();
         }
     }

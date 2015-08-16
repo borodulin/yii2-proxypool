@@ -101,13 +101,14 @@ class Proxy extends \yii\db\ActiveRecord
     public static function addProxy($address, $port, $login=null, $pwd=null, $fineproxy=null)
     {
         $model = static::findOne(['proxy_address'=>$address,'proxy_port'=>$port]);
-        if(empty($model)){
+        if (empty($model)) {
             $model = new static();
             $model->proxy_address = $address;
             $model->proxy_port = $port;
             $new = true;
-        } else
+        } else {
             $new = false;
+        }
         $model->proxy_login = $login;
         $model->proxy_password = $pwd;
         $model->fineproxy_id = $fineproxy;
@@ -121,12 +122,12 @@ class Proxy extends \yii\db\ActiveRecord
     public static function scanTubeincreaser()
     {
         $curl = new Curl('http://www.tubeincreaser.com/proxylist.txt');
-        if($curl->execute()){
+        if ($curl->execute()) {
             $rows=array();
             $lines = explode("\n", $curl->content);
             $tran=\Yii::$app->db->beginTransaction();
-            foreach ($lines as $line){
-                if(preg_match('/(\d+\.\d+\.\d+\.\d+):(\d+)/',$line,$matches)){
+            foreach ($lines as $line) {
+                if (preg_match('/(\d+\.\d+\.\d+\.\d+):(\d+)/',$line,$matches)) {
                     Proxy::addProxy($matches[1], $matches[2]);
                 }
             }

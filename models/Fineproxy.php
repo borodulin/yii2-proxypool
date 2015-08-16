@@ -65,7 +65,7 @@ class Fineproxy extends \yii\db\ActiveRecord
     
     public static function scan()
     {
-        foreach (static::find()->All() as $model){
+        foreach (static::find()->All() as $model) {
             $model->scanProxies();
         }
     }
@@ -79,12 +79,13 @@ class Fineproxy extends \yii\db\ActiveRecord
             'password' => $this->fineproxy_password,                
         ]);
         $curl = new Curl($url);
-        if($curl->execute()){
-            if(preg_match_all('/(.*?):(\d+)/m', $curl->content, $matches, PREG_SET_ORDER)){
+        if ($curl->execute()) {
+            if (preg_match_all('/(.*?):(\d+)/m', $curl->content, $matches, PREG_SET_ORDER)) {
                 $tran=\Yii::$app->db->beginTransaction();
-                foreach ($matches as $match){
-                    if(Proxy::addProxy($match[1], $match[2], 'HTTP', $this->fineproxy_login, $this->fineproxy_password, $this->fineproxy_id))
+                foreach ($matches as $match) {
+                    if (Proxy::addProxy($match[1], $match[2], 'HTTP', $this->fineproxy_login, $this->fineproxy_password, $this->fineproxy_id)) {
                         echo "added new fineproxy: {$match[1]}:{$match[2]}\n";
+                    }
                 }
                 $tran->commit();
             }
