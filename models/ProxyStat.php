@@ -48,7 +48,7 @@ class ProxyStat extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['proxy_id', 'domain_id', 'created_at', 'updated_at'], 'required'],
+            [['proxy_id', 'domain_id'], 'required'],
             [['proxy_id', 'domain_id', 'created_at', 'updated_at', 'request_cnt', 'success_cnt', 'error_cnt'], 'integer'],
             [['speed_last', 'speed_avg', 'speed_savg'], 'double'],
             [['error_message', 'cookies'], 'string'],

@@ -7,8 +7,6 @@
 
 namespace conquer\proxypool\models;
 
-use yii\db\Expression;
-
 /**
  * @author Andrey Borodulin
  */
@@ -107,15 +105,6 @@ SQL;
         $query->primaryModel = $this;
         $query->multiple = true;
         return $query;
-    }
-
-    
-    
-    
-    public function nextProxyStat()
-    {
-        // $this->validProxies
-    }
-    
+    }    
 }
 
