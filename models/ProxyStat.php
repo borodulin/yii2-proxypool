@@ -149,16 +149,16 @@ class ProxyStat extends \yii\db\ActiveRecord
             
             foreach ($proxyStats as $proxyStat) {   
                 if ($proxyStat->isHttpOK()) {
-                    if (isset($proxyStat->domain->check_content) && (!preg_match($proxyStat->domain->check_content, $url->content))) {
+                    if (isset($proxyStat->domain->check_content) && (!preg_match($proxyStat->domain->check_content, $proxyStat->content))) {
                         $proxyStat->handleError('Invalid content');
                     } else {
                         $proxyStat->success_cnt++;
                         $proxyStat->error_cnt = 0;
                         $proxyStat->error_message = null;
-                        $proxyStat->setSpeedLast($url->info['total_time']);
+                        $proxyStat->setSpeedLast($proxyStat->info['total_time']);
                     }
                 } else {
-                    $proxyStat->handleError($url->errorMessage);
+                    $proxyStat->handleError($proxyStat->errorMessage);
                 }
                 $proxyStat->save(false);
             }
