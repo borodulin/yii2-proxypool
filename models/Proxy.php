@@ -7,9 +7,11 @@
 
 namespace conquer\proxypool\models;
 
+use Yii;
+use yii\behaviors\TimestampBehavior;
 use conquer\helpers\Curl;
 use conquer\helpers\XPath;
-use yii\behaviors\TimestampBehavior;
+
 
 /**
  * 
@@ -98,7 +100,7 @@ class Proxy extends \yii\db\ActiveRecord
      * @param string $pwd
      * @param integer $fineproxy
      */
-    public static function addProxy($address, $port, $login=null, $pwd=null, $fineproxy=null)
+    public static function addProxy($address, $port, $login = null, $pwd = null, $fineproxy = null)
     {
         $model = static::findOne([
                 'proxy_address' => $address,
@@ -129,9 +131,9 @@ class Proxy extends \yii\db\ActiveRecord
         if ($curl->execute()) {
             $rows = [];
             $lines = explode("\n", $curl->content);
-            $tran = \Yii::$app->db->beginTransaction();
+            $tran = Yii::$app->db->beginTransaction();
             foreach ($lines as $line) {
-                if (preg_match('/(\d+\.\d+\.\d+\.\d+):(\d+)/',$line,$matches)) {
+                if (preg_match('/(\d+\.\d+\.\d+\.\d+):(\d+)/', $line, $matches)) {
                     Proxy::addProxy($matches[1], $matches[2]);
                 }
             }
@@ -148,15 +150,15 @@ class Proxy extends \yii\db\ActiveRecord
             $curl = new Curl("http://foxtools.ru/Proxy?page={$i}");
             if ($curl->execute()) {
                 $xpath = new XPath($curl->content, true);
-                $elements = $xpath->query('//*[@id="theProxyList"]/tbody/tr',null,false);
+                $elements = $xpath->query('//*[@id="theProxyList"]/tbody/tr', null, false);
                 if (!empty($elements)) {
-                    $tran = \Yii::$app->db->beginTransaction();
+                    $tran = Yii::$app->db->beginTransaction();
                     foreach ($elements as $element) {
                         $query = $xpath->queryAll([
                             'address' => './td[2]',
                             'port' => './td[3]',
                         ], $element);
-                        if (Proxy::addProxy($query['address'],$query['port'])) {
+                        if (Proxy::addProxy($query['address'], $query['port'])) {
                             echo "added new free proxy {$query['address']}:{$query['port']}\n";
                         }
                     }

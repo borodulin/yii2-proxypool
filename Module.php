@@ -15,7 +15,6 @@ use conquer\proxypool\console\ProxyController;
  */
 class Module extends \yii\base\Module implements \yii\base\BootstrapInterface
 {
-    
     /**
      * @inheritdoc
      */
@@ -32,5 +31,5 @@ class Module extends \yii\base\Module implements \yii\base\BootstrapInterface
                     'class' => ProxyController::className(),
             ];
         }
-    }    
+    }
 }

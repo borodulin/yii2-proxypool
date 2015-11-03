@@ -7,6 +7,7 @@
 
 namespace conquer\proxypool\models;
 
+use Yii;
 use yii\db\ActiveQuery;
 use yii\behaviors\TimestampBehavior;
 use conquer\helpers\CurlTrait;
@@ -32,6 +33,12 @@ class ProxyStat extends \yii\db\ActiveRecord
 {
     
     use CurlTrait;
+    
+    public function init()
+    {
+        parent::init();
+        $this->_autoCookie = true;
+    }
     
     /**
      * @inheritdoc
@@ -106,22 +113,25 @@ class ProxyStat extends \yii\db\ActiveRecord
     
     /**
      * Check the proxies status
+     * @param number $limit
+     * @param number $interval (seconds)
+     * @param number $errors
      */
-    public static function checkProxies()
+    public static function checkProxies($limit = 500, $interval = 21600, $errors = 20)
     {
         Domain::initProxies();
     
-        $time = time() - 6*60*60;
+        $time = time() - $interval;
         
         /* @var $proxyStats ProxyStat[] */
         $proxyStats = ProxyStat::find()
             ->from(['t' => static::tableName()])
             ->where(['<', 't.updated_at', $time])
-            ->andWhere(['<', 'error_cnt', 20])
+            ->andWhere(['<', 'error_cnt', $errors])
             ->innerJoinWith(['proxy', 'domain'])
             ->andWhere(['is not', 'check_url', null])
             ->indexBy('stat_id')
-            ->limit(500)
+            ->limit($limit)
             ->orderBy(['t.updated_at' => SORT_ASC])
             ->all();
         
@@ -136,7 +146,7 @@ class ProxyStat extends \yii\db\ActiveRecord
                 if (!empty($proxy->proxy_login)) {
                     $userLogin = $proxy->proxy_login;
                     if (!empty($proxy->proxy_password)) {
-                        $userLogin .= ':'.$proxy->proxy_password;
+                        $userLogin .= ':' . $proxy->proxy_password;
                     }
                     $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
@@ -145,7 +155,7 @@ class ProxyStat extends \yii\db\ActiveRecord
             
             static::curl_multi_exec($proxyStats);
             
-            $tran = \Yii::$app->db->beginTransaction();
+            $tran = Yii::$app->db->beginTransaction();
             
             foreach ($proxyStats as $proxyStat) {   
                 if ($proxyStat->isHttpOK()) {
@@ -181,7 +191,7 @@ class ProxyStat extends \yii\db\ActiveRecord
         if (!empty($proxy->proxy_login)) {
             $userLogin = $proxy->proxy_login;
             if (!empty($proxy->proxy_password)) {
-                $userLogin .= ':'.$proxy->proxy_password;
+                $userLogin .= ':' . $proxy->proxy_password;
             }
             $options[CURLOPT_PROXYUSERPWD] = $userLogin;
         }
@@ -209,7 +219,7 @@ class ProxyStat extends \yii\db\ActiveRecord
             $this->error_cnt = 0;
             $this->error_message = null;
             $this->setSpeedLast($this->info['total_time']);
-            $this->cookies = $this->cookies;
+            $this->cookies = $this->getCookies();
         }
         $this->save(false);
         return $this->error_cnt == 0;
@@ -230,9 +240,9 @@ class ProxyStat extends \yii\db\ActiveRecord
                     CURLOPT_URL => $proxyStat->domain->check_url,
                 ];
                 if (!empty($proxy->proxy_login)) {
-                    $userLogin=$proxy->proxy_login;
+                    $userLogin = $proxy->proxy_login;
                     if (!empty($proxy->proxy_password)) {
-                        $userLogin .= ':'.$proxy->proxy_password;
+                        $userLogin .= ':' . $proxy->proxy_password;
                     }
                     $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
@@ -243,7 +253,7 @@ class ProxyStat extends \yii\db\ActiveRecord
             }
             static::curl_multi_exec($proxyStats);
         
-            $tran=\Yii::$app->db->beginTransaction();
+            $tran = Yii::$app->db->beginTransaction();
         
             foreach ($proxyStats as $proxyStat) {
                 if ($proxyStat->errorCode) {

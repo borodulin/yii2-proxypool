@@ -26,9 +26,9 @@ class ProxyController extends \yii\console\Controller
     /**
      * 
      */
-    public function actionCheck()
+    public function actionCheck($limit = 500, $interval = 21600, $errors = 20)
     {
-        ProxyStat::checkProxies();
+        ProxyStat::checkProxies($limit, $interval, $errors);
     }
     
     /**
