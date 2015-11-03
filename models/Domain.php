@@ -80,7 +80,7 @@ class Domain extends \yii\db\ActiveRecord
 INSERT INTO {{%pool_proxy_stat}}(proxy_id, domain_id, created_at, updated_at)
   SELECT sp.proxy_id, sd.domain_id, :created_at, :updated_at
   FROM {{%pool_domain}} sd
-    JOIN {{%pool_proxy}} sp
+    JOIN {{%pool_proxy}} sp ON 1=1
     LEFT JOIN {{%pool_proxy_stat}} sps ON sd.domain_id = sps.domain_id AND sp.proxy_id = sps.proxy_id
   WHERE sps.stat_id IS NULL
 SQL;

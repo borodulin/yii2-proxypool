@@ -8,9 +8,8 @@
 namespace conquer\proxypool\models;
 
 use yii\db\ActiveQuery;
+use yii\behaviors\TimestampBehavior;
 use conquer\helpers\CurlTrait;
-
-
 
 /**
  * 
@@ -62,7 +61,7 @@ class ProxyStat extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            \yii\behaviors\TimestampBehavior::className(),
+            TimestampBehavior::className(),
         ];
     }
     
@@ -91,8 +90,8 @@ class ProxyStat extends \yii\db\ActiveRecord
     public function setSpeedLast($value)
     {
         $this->speed_last = $value;
-        $this->speed_avg = ($this->speed_avg*$this->request_cnt+$value)/(1+$this->request_cnt);
-        $this->speed_savg = sqrt((pow($this->speed_savg,2)*$this->request_cnt+pow($value,2))/(1+$this->request_cnt));
+        $this->speed_avg = ($this->speed_avg * $this->request_cnt + $value)/(1 + $this->request_cnt);
+        $this->speed_savg = sqrt((pow($this->speed_savg, 2) * $this->request_cnt + pow($value, 2)) / (1 + $this->request_cnt));
     }
     
     /**
@@ -112,21 +111,21 @@ class ProxyStat extends \yii\db\ActiveRecord
     {
         Domain::initProxies();
     
-        $time = time()-6*60*60;
+        $time = time() - 6*60*60;
         
         /* @var $proxyStats ProxyStat[] */
         $proxyStats = ProxyStat::find()
-            ->from(['t'=>static::tableName()])
+            ->from(['t' => static::tableName()])
             ->where(['<', 't.updated_at', $time])
-            ->andWhere([ '<', 'error_cnt', 20])
-            ->innerJoinWith(['proxy','domain'])
+            ->andWhere(['<', 'error_cnt', 20])
+            ->innerJoinWith(['proxy', 'domain'])
             ->andWhere(['is not', 'check_url', null])
             ->indexBy('stat_id')
             ->limit(500)
-            ->orderBy(['t.updated_at' => SORT_ASC, 'RAND()' => SORT_ASC])
+            ->orderBy(['t.updated_at' => SORT_ASC])
             ->all();
         
-        if (count($proxyStats)>0) {
+        if (count($proxyStats) > 0) {
             foreach ($proxyStats as $proxyStat) {
                 $proxy = $proxyStat->proxy;
                 $options = [
@@ -154,8 +153,8 @@ class ProxyStat extends \yii\db\ActiveRecord
                         $proxyStat->handleError('Invalid content');
                     } else {
                         $proxyStat->success_cnt++;
-                        $proxyStat->error_cnt=0;
-                        $proxyStat->error_message=null;
+                        $proxyStat->error_cnt = 0;
+                        $proxyStat->error_message = null;
                         $proxyStat->setSpeedLast($url->info['total_time']);
                     }
                 } else {
@@ -180,11 +179,11 @@ class ProxyStat extends \yii\db\ActiveRecord
         ];
 
         if (!empty($proxy->proxy_login)) {
-            $userLogin=$proxy->proxy_login;
+            $userLogin = $proxy->proxy_login;
             if (!empty($proxy->proxy_password)) {
-                $userLogin.=':'.$proxy->proxy_password;
+                $userLogin .= ':'.$proxy->proxy_password;
             }
-            $options[CURLOPT_PROXYUSERPWD]=$userLogin;
+            $options[CURLOPT_PROXYUSERPWD] = $userLogin;
         }
         
         if (!empty($this->cookies)) {
@@ -207,13 +206,13 @@ class ProxyStat extends \yii\db\ActiveRecord
             $this->error_message = $this->content;
         } else {
             $this->success_cnt++;
-            $this->error_cnt=0;
-            $this->error_message=null;
+            $this->error_cnt = 0;
+            $this->error_message = null;
             $this->setSpeedLast($this->info['total_time']);
             $this->cookies = $this->cookies;
         }
         $this->save(false);
-        return $this->error_cnt === 0;
+        return $this->error_cnt == 0;
     }
     
     /**
@@ -222,7 +221,7 @@ class ProxyStat extends \yii\db\ActiveRecord
      */
     public static function multiExec($proxyStats)
     {
-        if (count($proxyStats)>0) {
+        if (count($proxyStats) > 0) {
             foreach ($proxyStats as $proxyStat) {
                 $proxy = $proxyStat->proxy;
                 $options = [
@@ -233,9 +232,9 @@ class ProxyStat extends \yii\db\ActiveRecord
                 if (!empty($proxy->proxy_login)) {
                     $userLogin=$proxy->proxy_login;
                     if (!empty($proxy->proxy_password)) {
-                        $userLogin.=':'.$proxy->proxy_password;
+                        $userLogin .= ':'.$proxy->proxy_password;
                     }
-                    $options[CURLOPT_PROXYUSERPWD]=$userLogin;
+                    $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
                 if (!empty($proxyStat->cookies)) {
                     $options[CURLOPT_COOKIE] = $proxyStat->cookies; 
@@ -253,8 +252,8 @@ class ProxyStat extends \yii\db\ActiveRecord
                     $proxyStat->error_message = $proxyStat->content;
                 } else {
                     $proxyStat->success_cnt++;
-                    $proxyStat->error_cnt=0;
-                    $proxyStat->error_message=null;
+                    $proxyStat->error_cnt = 0;
+                    $proxyStat->error_message = null;
                     $proxyStat->setSpeedLast($proxyStat->info['total_time']);
                     $proxyStat->cookies = $proxyStat->getCookies();
                 }                   

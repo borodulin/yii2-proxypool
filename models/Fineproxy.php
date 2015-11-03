@@ -7,6 +7,7 @@
 
 namespace conquer\proxypool\models;
 
+use yii\behaviors\TimestampBehavior;
 use conquer\helpers\Curl;
 
 /**
@@ -59,7 +60,7 @@ class Fineproxy extends \yii\db\ActiveRecord
     public function behaviors()
     {
         return [
-            \yii\behaviors\TimestampBehavior::className(),
+            TimestampBehavior::className(),
         ];
     }
     
@@ -81,7 +82,7 @@ class Fineproxy extends \yii\db\ActiveRecord
         $curl = new Curl($url);
         if ($curl->execute()) {
             if (preg_match_all('/(.*?):(\d+)/m', $curl->content, $matches, PREG_SET_ORDER)) {
-                $tran=\Yii::$app->db->beginTransaction();
+                $tran = \Yii::$app->db->beginTransaction();
                 foreach ($matches as $match) {
                     if (Proxy::addProxy($match[1], $match[2], 'HTTP', $this->fineproxy_login, $this->fineproxy_password, $this->fineproxy_id)) {
                         echo "added new fineproxy: {$match[1]}:{$match[2]}\n";
