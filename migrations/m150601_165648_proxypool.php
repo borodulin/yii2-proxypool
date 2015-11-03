@@ -45,7 +45,7 @@ class m150601_165648_proxypool extends Migration
                 'proxy_password' => $this->string(100),
                 'created_at' => $this->integer()->notNull(),
                 'updated_at' => $this->integer()->notNull(),
-                'fineproxy_id' => $this->integer()->notNull(),
+                'fineproxy_id' => $this->integer(),
         ]);
         $this->createIndex('uk_proxy', '{{%pool_proxy}}', ['proxy_address','proxy_port'], true);
         $this->createIndex('idx_proxy_proxy_login', '{{%pool_proxy}}', 'proxy_login');
