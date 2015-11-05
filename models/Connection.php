@@ -13,7 +13,7 @@ use yii\behaviors\TimestampBehavior;
 use conquer\helpers\CurlTrait;
 
 /**
- * 
+ * @property integer $connection_id
  * @property string $url
  * @property string $header   
  * @property array $options
@@ -29,7 +29,7 @@ use conquer\helpers\CurlTrait;
  * @author Andrey Borodulin
  *
  */
-class ProxyStat extends \yii\db\ActiveRecord
+class Connection extends \yii\db\ActiveRecord
 {
     
     use CurlTrait;
@@ -45,7 +45,11 @@ class ProxyStat extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%pool_proxy_stat}}';
+        if ($proxyPool = Yii::$app->get('proxyPool', false)) {
+            return $proxyPool->connectionTable;
+        } else {
+            return '{{%connection}}';
+        }
     }
     
     /**
@@ -123,8 +127,8 @@ class ProxyStat extends \yii\db\ActiveRecord
     
         $time = time() - $interval;
         
-        /* @var $proxyStats ProxyStat[] */
-        $proxyStats = ProxyStat::find()
+        /* @var $connections Connection[] */
+        $connections = Connection::find()
             ->from(['t' => static::tableName()])
             ->where(['<', 't.updated_at', $time])
             ->andWhere(['<', 'error_cnt', $errors])
@@ -135,13 +139,13 @@ class ProxyStat extends \yii\db\ActiveRecord
             ->orderBy(['t.updated_at' => SORT_ASC])
             ->all();
         
-        if (count($proxyStats) > 0) {
-            foreach ($proxyStats as $proxyStat) {
-                $proxy = $proxyStat->proxy;
+        if (count($connections) > 0) {
+            foreach ($connections as $connection) {
+                $proxy = $connection->proxy;
                 $options = [
                     CURLOPT_PROXY => $proxy->proxy_address,
                     CURLOPT_PROXYPORT => $proxy->proxy_port,
-                    CURLOPT_URL => $proxyStat->domain->check_url,
+                    CURLOPT_URL => $connection->domain->check_url,
                 ];
                 if (!empty($proxy->proxy_login)) {
                     $userLogin = $proxy->proxy_login;
@@ -150,27 +154,27 @@ class ProxyStat extends \yii\db\ActiveRecord
                     }
                     $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
-                $proxyStat->options = $options;
+                $connection->options = $options;
             }
             
-            static::curl_multi_exec($proxyStats);
+            static::curl_multi_exec($connections);
             
             $tran = Yii::$app->db->beginTransaction();
             
-            foreach ($proxyStats as $proxyStat) {   
-                if ($proxyStat->isHttpOK()) {
-                    if (isset($proxyStat->domain->check_content) && (!preg_match($proxyStat->domain->check_content, $proxyStat->content))) {
-                        $proxyStat->handleError('Invalid content');
+            foreach ($connections as $connection) {   
+                if ($connection->isHttpOK()) {
+                    if (isset($connection->domain->check_content) && (!preg_match($connection->domain->check_content, $connection->content))) {
+                        $connection->handleError('Invalid content');
                     } else {
-                        $proxyStat->success_cnt++;
-                        $proxyStat->error_cnt = 0;
-                        $proxyStat->error_message = null;
-                        $proxyStat->setSpeedLast($proxyStat->info['total_time']);
+                        $connection->success_cnt++;
+                        $connection->error_cnt = 0;
+                        $connection->error_message = null;
+                        $connection->setSpeedLast($connection->info['total_time']);
                     }
                 } else {
-                    $proxyStat->handleError($proxyStat->errorMessage);
+                    $connection->handleError($connection->errorMessage);
                 }
-                $proxyStat->save(false);
+                $connection->save(false);
             }
             $tran->commit();
         }
@@ -229,15 +233,15 @@ class ProxyStat extends \yii\db\ActiveRecord
      * Executes parallels curls
      * @param ProxyStat[] $urls
      */
-    public static function multiExec($proxyStats)
+    public static function multiExec($connections)
     {
-        if (count($proxyStats) > 0) {
-            foreach ($proxyStats as $proxyStat) {
-                $proxy = $proxyStat->proxy;
+        if (count($connections) > 0) {
+            foreach ($connections as $connection) {
+                $proxy = $connection->proxy;
                 $options = [
                     CURLOPT_PROXY => $proxy->proxy_address,
                     CURLOPT_PROXYPORT => $proxy->proxy_port,
-                    CURLOPT_URL => $proxyStat->domain->check_url,
+                    CURLOPT_URL => $connection->domain->check_url,
                 ];
                 if (!empty($proxy->proxy_login)) {
                     $userLogin = $proxy->proxy_login;
@@ -246,28 +250,28 @@ class ProxyStat extends \yii\db\ActiveRecord
                     }
                     $options[CURLOPT_PROXYUSERPWD] = $userLogin;
                 }
-                if (!empty($proxyStat->cookies)) {
-                    $options[CURLOPT_COOKIE] = $proxyStat->cookies; 
+                if (!empty($connection->cookies)) {
+                    $options[CURLOPT_COOKIE] = $connection->cookies; 
                 }
-                $proxyStat->setOptions($options);
+                $connection->setOptions($options);
             }
-            static::curl_multi_exec($proxyStats);
+            static::curl_multi_exec($connections);
         
             $tran = Yii::$app->db->beginTransaction();
         
-            foreach ($proxyStats as $proxyStat) {
-                if ($proxyStat->errorCode) {
-                    $proxyStat->handleError($this->errorMessage);
-                } elseif (!$proxyStat->isHttpOK()) {
-                    $proxyStat->error_message = $proxyStat->content;
+            foreach ($connections as $connection) {
+                if ($connection->errorCode) {
+                    $connection->handleError($this->errorMessage);
+                } elseif (!$connection->isHttpOK()) {
+                    $connection->error_message = $connection->content;
                 } else {
-                    $proxyStat->success_cnt++;
-                    $proxyStat->error_cnt = 0;
-                    $proxyStat->error_message = null;
-                    $proxyStat->setSpeedLast($proxyStat->info['total_time']);
-                    $proxyStat->cookies = $proxyStat->getCookies();
+                    $connection->success_cnt++;
+                    $connection->error_cnt = 0;
+                    $connection->error_message = null;
+                    $connection->setSpeedLast($connection->info['total_time']);
+                    $connection->cookies = $connection->getCookies();
                 }                   
-                $proxyStat->save(false);
+                $connection->save(false);
             }
             $tran->commit();
         }

@@ -7,7 +7,6 @@
 
 namespace conquer\proxypool\console;
 
-use conquer\proxypool\models\Fineproxy;
 use conquer\proxypool\models\ProxyStat;
 use conquer\proxypool\models\Proxy;
 
@@ -30,20 +29,4 @@ class ProxyController extends \yii\console\Controller
     {
         ProxyStat::checkProxies($limit, $interval, $errors);
     }
-    
-    /**
-     * 
-     */
-    public function actionFineproxy()
-    {
-        Fineproxy::scan();
-    }
-    
-    /**
-     * 
-     */
-    public function actionFoxtools()
-    {
-        Proxy::scanFoxtools();
-    }    
 }
