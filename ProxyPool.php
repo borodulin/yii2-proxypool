@@ -1,5 +1,6 @@
 <?php
 
+namespace conquer\proxypool;
 
 use yii\base\Component;
 

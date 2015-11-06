@@ -31,11 +31,10 @@ class Proxy extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        if ($proxyPool = Yii::$app->get('proxyPool', false)) {
-            return $proxyPool->proxyTable;
-        } else {
-            return '{{%proxy}}';
+        if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
+            Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
         }
+        return $proxyPool->proxyTable;
     }
     
     /**

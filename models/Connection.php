@@ -45,11 +45,10 @@ class Connection extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        if ($proxyPool = Yii::$app->get('proxyPool', false)) {
-            return $proxyPool->connectionTable;
-        } else {
-            return '{{%connection}}';
+        if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
+            Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
         }
+        return $proxyPool->connectionTable;
     }
     
     /**
