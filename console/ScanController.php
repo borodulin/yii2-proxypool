@@ -8,6 +8,8 @@
 namespace conquer\proxypool\console;
 
 use conquer\proxypool\models\Proxy;
+use conquer\helpers\Curl;
+use conquer\helpers\XPath;
 
 /**
  * 

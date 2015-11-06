@@ -19,6 +19,7 @@ use yii\helpers\VarDumper;
  * @property integer $updated_at
  * 
  * @property Connection[] $connections
+ * @property Connection[] $goodConnections
  * 
  * @author Andrey Borodulin
  */
