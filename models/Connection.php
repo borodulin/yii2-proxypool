@@ -11,6 +11,7 @@ use Yii;
 use yii\db\ActiveQuery;
 use yii\behaviors\TimestampBehavior;
 use conquer\helpers\CurlTrait;
+use conquer\proxypool\ProxyPool;
 
 /**
  * @property integer $connection_id
@@ -120,20 +121,24 @@ class Connection extends \yii\db\ActiveRecord
      * @param number $interval (seconds)
      * @param number $errors
      */
-    public static function checkProxies($limit = 500, $interval = 21600, $errors = 20)
+    public static function checkProxies($limit = 500)
     {
         Domain::initProxies();
     
-        $time = time() - $interval;
+        if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
+            Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
+        }
+        
+        $time = time() - $proxyPool->checkInterval;
         
         /* @var $connections Connection[] */
         $connections = Connection::find()
             ->from(['t' => static::tableName()])
             ->where(['<', 't.updated_at', $time])
-            ->andWhere(['<', 'error_cnt', $errors])
+            ->andWhere(['<', 'error_cnt', $proxyPool->maxErrors])
             ->innerJoinWith(['proxy', 'domain'])
             ->andWhere(['is not', 'check_url', null])
-            ->indexBy('stat_id')
+            ->indexBy('connection_id')
             ->limit($limit)
             ->orderBy(['t.updated_at' => SORT_ASC])
             ->all();

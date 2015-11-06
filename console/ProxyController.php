@@ -7,8 +7,8 @@
 
 namespace conquer\proxypool\console;
 
-use conquer\proxypool\models\ProxyStat;
 use conquer\proxypool\models\Proxy;
+use conquer\proxypool\models\Connection;
 
 /**
  * 
@@ -27,6 +27,6 @@ class ProxyController extends \yii\console\Controller
      */
     public function actionCheck($limit = 500, $interval = 21600, $errors = 20)
     {
-        ProxyStat::checkProxies($limit, $interval, $errors);
+        Connection::checkProxies($limit, $interval, $errors);
     }
 }
