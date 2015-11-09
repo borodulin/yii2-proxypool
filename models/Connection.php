@@ -8,8 +8,10 @@
 namespace conquer\proxypool\models;
 
 use Yii;
+use yii\base\Event;
 use yii\db\ActiveQuery;
 use yii\behaviors\TimestampBehavior;
+use yii\helpers\ArrayHelper;
 use conquer\helpers\CurlTrait;
 use conquer\proxypool\ProxyPool;
 
@@ -122,9 +124,13 @@ class Connection extends \yii\db\ActiveRecord
      */
     public function error($errorMessage)
     {
-        $this->trigger(self::EVENT_ON_ERROR);
-        $this->error_cnt++;
-        $this->error_message = $errorMessage;
+        $event = new Event();
+        $event->data = $errorMessage;
+        $this->trigger(self::EVENT_ON_ERROR, $event);
+        if (!$event->handled) {
+            $this->error_cnt++;
+            $this->error_message = $errorMessage;
+        }
         return $this;
     }
     
@@ -133,12 +139,17 @@ class Connection extends \yii\db\ActiveRecord
      */
     public function success()
     {
+        $event = new Event();
         $this->trigger(self::EVENT_ON_SUCCESS);
-        $this->success_cnt++;
-        $this->error_cnt = 0;
-        $this->error_message = null;
-        $this->setSpeedLast($this->info['total_time']);
-        $this->cookies = $this->getCookies();
+        if (!$event->handled) {
+            $this->success_cnt++;
+            $this->error_cnt = 0;
+            $this->error_message = null;
+            $this->cookies = $this->getCookies();
+        }
+        if ($totalTime = ArrayHelper::getValue($this->info, 'total_time')) {
+            $this->setSpeedLast($totalTime);
+        }
         return $this;
     }
     
@@ -198,12 +209,12 @@ class Connection extends \yii\db\ActiveRecord
                 } else {
                     if ($connection->isHttpOK()) {
                         if (isset($connection->domain->check_content) && (!preg_match($connection->domain->check_content, $connection->content))) {
-                            $connection->error("Invalid content\n".$connection->content);
+                            $connection->error("Invalid content");
                         } else {
                             $connection->success();
                         }
                     } else {
-                        $connection->error($connection->content);
+                        $connection->error(ArrayHelper::getValue($connection->info, 'http_code', 'Bad HTTP Headers'));
                     }
                 }
                 $connection->save(false);
