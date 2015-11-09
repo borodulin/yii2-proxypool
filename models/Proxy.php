@@ -17,6 +17,8 @@ use yii\behaviors\TimestampBehavior;
  * @property integer $proxy_port
  * @property string $proxy_login 
  * @property string $proxy_password 
+ * @property integer $created_at
+ * @property integer $updated_at
  * 
  * @property Connection[] $connections
  * 
@@ -95,15 +97,12 @@ class Proxy extends \yii\db\ActiveRecord
      */
     public static function addProxy($address, $port, $login = null, $pwd = null)
     {
-        $model = static::findOne([
+        $model = static::findOne($attrs = [
                 'proxy_address' => $address,
                 'proxy_port' => $port,
         ]);
         if (empty($model)) {
-            $model = new static([
-                    'proxy_address' => $address,
-                    'proxy_port' => $port,
-            ]);
+            $model = new static($attrs);
         }
         $model->proxy_login = $login;
         $model->proxy_password = $pwd;

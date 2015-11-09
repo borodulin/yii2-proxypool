@@ -23,6 +23,14 @@ use conquer\proxypool\ProxyPool;
  * @property string $errorMessage
  * @property string $cookies
  * @property array $info
+ * @property integer $request_cnt
+ * @property integer $success_cnt
+ * @property integer $error_cnt
+ * @property double $speed_last
+ * @property double $speed_avg
+ * @property double $speed_savg
+ * @property integer $created_at
+ * @property integer $updated_at
  * 
  * @property Domain $domain
  * @property Proxy $proxy
