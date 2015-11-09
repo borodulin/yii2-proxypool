@@ -133,6 +133,7 @@ class Connection extends \yii\db\ActiveRecord
      */
     public function success()
     {
+        $this->trigger(self::EVENT_ON_SUCCESS);
         $this->success_cnt++;
         $this->error_cnt = 0;
         $this->error_message = null;
