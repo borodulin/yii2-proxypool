@@ -7,6 +7,7 @@
 
 namespace conquer\proxypool\models;
 
+use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\base\Exception;
 use yii\helpers\VarDumper;
@@ -65,7 +66,7 @@ class Domain extends \yii\db\ActiveRecord
     /**
      * 
      * @param string $url
-     * @return SrvDomain
+     * @return Domain
      */
     public static function getByUrl($url)
     {
@@ -92,20 +93,22 @@ INSERT INTO $connectionTable(proxy_id, domain_id, created_at, updated_at)
     LEFT JOIN $connectionTable sps ON sd.domain_id = sps.domain_id AND sp.proxy_id = sps.proxy_id
   WHERE sps.stat_id IS NULL
 SQL;
-        \Yii::$app->db->createCommand($sql)
+        Yii::$app->db->createCommand($sql)
             ->bindValues(['created_at' => time(), 'updated_at' => 0])
             ->execute();
     }
     
     /**
-     * 
      * @return \yii\db\ActiveQuery
      */
     public function getConnections()
     {
         return $this->hasMany(Connection::className(), ['domain_id' => 'domain_id']);
     }
-    
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
     public function getGoodConnections()
     {
         return $this->getConnections()
