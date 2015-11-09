@@ -40,8 +40,10 @@ use conquer\proxypool\ProxyPool;
  */
 class Connection extends \yii\db\ActiveRecord
 {
-    
     use CurlTrait;
+    
+    const EVENT_ON_SUCCESS = 'onSuccess';
+    const EVENT_ON_ERROR = 'onError';
     
     public function init()
     {
@@ -116,11 +118,27 @@ class Connection extends \yii\db\ActiveRecord
     /**
      * 
      * @param string $errorMessage
+     * @return static
      */
-    public function handleError($errorMessage)
+    public function error($errorMessage)
     {
+        $this->trigger(self::EVENT_ON_ERROR);
         $this->error_cnt++;
         $this->error_message = $errorMessage;
+        return $this;
+    }
+    
+    /**
+     * @return static
+     */
+    public function success()
+    {
+        $this->success_cnt++;
+        $this->error_cnt = 0;
+        $this->error_message = null;
+        $this->setSpeedLast($this->info['total_time']);
+        $this->cookies = $this->getCookies();
+        return $this;
     }
     
     /**
@@ -173,18 +191,19 @@ class Connection extends \yii\db\ActiveRecord
             
             $tran = Yii::$app->db->beginTransaction();
             
-            foreach ($connections as $connection) {   
-                if ($connection->isHttpOK()) {
-                    if (isset($connection->domain->check_content) && (!preg_match($connection->domain->check_content, $connection->content))) {
-                        $connection->handleError('Invalid content');
-                    } else {
-                        $connection->success_cnt++;
-                        $connection->error_cnt = 0;
-                        $connection->error_message = null;
-                        $connection->setSpeedLast($connection->info['total_time']);
-                    }
+            foreach ($connections as $connection) {
+                if ($connection->errorCode) {
+                    $connection->error($connection->errorMessage);
                 } else {
-                    $connection->handleError($connection->errorMessage);
+                    if ($connection->isHttpOK()) {
+                        if (isset($connection->domain->check_content) && (!preg_match($connection->domain->check_content, $connection->content))) {
+                            $connection->error("Invalid content\n".$connection->content);
+                        } else {
+                            $connection->success();
+                        }
+                    } else {
+                        $connection->error($connection->content);
+                    }
                 }
                 $connection->save(false);
             }
@@ -227,26 +246,21 @@ class Connection extends \yii\db\ActiveRecord
         $this->curl_execute();
         
         if ($this->errorCode) {
-            $this->handleError($this->errorMessage);
-        } elseif (!$this->isHttpOK()) {
-            $this->error_message = $this->content;
-        } else {
-            $this->success_cnt++;
-            $this->error_cnt = 0;
-            $this->error_message = null;
-            $this->setSpeedLast($this->info['total_time']);
-            $this->cookies = $this->getCookies();
+            $this->error($this->errorMessage);
+            $this->save(false);
+            return false;
         }
-        $this->save(false);
-        return $this->error_cnt == 0;
+        return true;
     }
     
     /**
      * Executes parallels curls
      * @param ProxyStat[] $urls
+     * @return integer
      */
     public static function multiExec($connections)
     {
+        $result = 0;
         if (count($connections) > 0) {
             foreach ($connections as $connection) {
                 $proxy = $connection->proxy;
@@ -273,20 +287,15 @@ class Connection extends \yii\db\ActiveRecord
         
             foreach ($connections as $connection) {
                 if ($connection->errorCode) {
-                    $connection->handleError($this->errorMessage);
-                } elseif (!$connection->isHttpOK()) {
-                    $connection->error_message = $connection->content;
+                    $connection->error($this->errorMessage);
+                    $connection->save(false);
                 } else {
-                    $connection->success_cnt++;
-                    $connection->error_cnt = 0;
-                    $connection->error_message = null;
-                    $connection->setSpeedLast($connection->info['total_time']);
-                    $connection->cookies = $connection->getCookies();
-                }                   
-                $connection->save(false);
+                    $result++;
+                }
             }
             $tran->commit();
         }
+        return $result;
     }
 
 }
