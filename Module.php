@@ -31,7 +31,7 @@ class Module extends \yii\base\Module implements \yii\base\BootstrapInterface
             $app->controllerMap[$this->id] = [
                     'class' => ProxyController::className(),
             ];
-            $app->controllerMap[$this->id.'-scan'] = [
+            $app->controllerMap[$this->id . '-scan'] = [
                     'class' => ScanController::className(),
             ];
         }
