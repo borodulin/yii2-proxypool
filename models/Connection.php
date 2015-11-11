@@ -264,7 +264,7 @@ class Connection extends \yii\db\ActiveRecord
             $this->error($this->errorMessage);
         }
         $this->save(false);
-        return $this->errorCode ? true : false;
+        return $this->errorCode ? false : true;
     }
     
     /**
