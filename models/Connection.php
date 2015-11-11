@@ -204,6 +204,7 @@ class Connection extends \yii\db\ActiveRecord
             $tran = Yii::$app->db->beginTransaction();
             
             foreach ($connections as $connection) {
+                $connection->request_cnt++;
                 if ($connection->errorCode) {
                     $connection->error($connection->errorMessage);
                 } else {
@@ -257,12 +258,13 @@ class Connection extends \yii\db\ActiveRecord
         
         $this->curl_execute();
         
+        $this->request_cnt++;
+        
         if ($this->errorCode) {
             $this->error($this->errorMessage);
-            $this->save(false);
-            return false;
         }
-        return true;
+        $this->save(false);
+        return $this->errorCode ? true : false;
     }
     
     /**
@@ -298,12 +300,13 @@ class Connection extends \yii\db\ActiveRecord
             $tran = Yii::$app->db->beginTransaction();
         
             foreach ($connections as $connection) {
+                $connection->request_cnt++;
                 if ($connection->errorCode) {
                     $connection->error($this->errorMessage);
-                    $connection->save(false);
                 } else {
                     $result++;
                 }
+                $connection->save(false);
             }
             $tran->commit();
         }
