@@ -8,6 +8,7 @@
 namespace conquer\proxypool;
 
 use conquer\proxypool\console\ProxyController;
+use conquer\proxypool\console\ScanController;
 
 /**
  * 
@@ -29,6 +30,9 @@ class Module extends \yii\base\Module implements \yii\base\BootstrapInterface
         } elseif ($app instanceof \yii\console\Application) {
             $app->controllerMap[$this->id] = [
                     'class' => ProxyController::className(),
+            ];
+            $app->controllerMap[$this->id.'-scan'] = [
+                    'class' => ScanController::className(),
             ];
         }
     }
