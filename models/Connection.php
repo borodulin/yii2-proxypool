@@ -262,6 +262,8 @@ class Connection extends \yii\db\ActiveRecord
         
         if ($this->errorCode) {
             $this->error($this->errorMessage);
+        } else {
+            $this->success();
         }
         $this->save(false);
         return $this->errorCode ? false : true;
@@ -304,6 +306,7 @@ class Connection extends \yii\db\ActiveRecord
                 if ($connection->errorCode) {
                     $connection->error($this->errorMessage);
                 } else {
+                    $connection->success();
                     $result++;
                 }
                 $connection->save(false);
