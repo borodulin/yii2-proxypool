@@ -159,21 +159,23 @@ class Connection extends \yii\db\ActiveRecord
      * @param number $interval (seconds)
      * @param number $errors
      */
-    public static function checkProxies($limit = 500)
+    public static function checkProxies($limit = 500, $force = null)
     {
         Domain::initProxies();
     
         if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
             Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
         }
-        
-        $time = time() - $proxyPool->checkInterval;
-        
+        if ($force) {
+            $time = null;
+        } else {
+            $time = time() - $proxyPool->checkInterval;
+        }
         /* @var $connections Connection[] */
         $connections = Connection::find()
             ->from(['t' => static::tableName()])
-            ->where(['<', 't.updated_at', $time])
-            ->andWhere(['<', 'error_cnt', $proxyPool->maxErrors])
+            ->where(['<', 'error_cnt', $proxyPool->maxErrors])
+            ->andFilterWhere(['<', 't.updated_at', $time])
             ->innerJoinWith(['proxy', 'domain'])
             ->andWhere(['is not', 'check_url', null])
             ->indexBy('connection_id')
