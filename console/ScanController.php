@@ -40,7 +40,7 @@ class ScanController extends \yii\console\Controller
             if (preg_match_all('/(.*?):(\d+)/m', $curl->content, $matches, PREG_SET_ORDER)) {
                 $tran = Yii::$app->db->beginTransaction();
                 foreach ($matches as $match) {
-                    if (Proxy::addProxy($match[1], $match[2], 'HTTP', $login, $password)->isNewRecord) {
+                    if (Proxy::addProxy($match[1], $match[2], $login, $password)->isNewRecord) {
                         echo "added new fineproxy: {$match[1]}:{$match[2]}\n";
                     }
                 }
