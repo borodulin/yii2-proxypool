@@ -92,7 +92,7 @@ class Proxy extends \yii\db\ActiveRecord
      */
     public function getName()
     {
-        return $this->proxy_address.':'.$this->proxy_port;
+        return $this->proxy_address . ':' . $this->proxy_port;
     }
     
     /**
