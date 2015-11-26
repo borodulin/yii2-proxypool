@@ -18,9 +18,8 @@ class m150601_165648_proxypool extends Migration
     // Use safeUp/safeDown to run migration code within a transaction
     public function safeUp()
     {
-        if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
-            Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
-        }
+        /* @var $proxyPool \conquer\proxypool\ProxyPool */
+        $proxyPool = Yii::$app->get('proxyPool');
 
         $domainTable = $proxyPool->domainTable;
         $proxyTable = $proxyPool->proxyTable;
@@ -73,9 +72,8 @@ class m150601_165648_proxypool extends Migration
     
     public function safeDown()
     {
-        if (!$proxyPool = Yii::$app->get('proxyPool', false)) {
-            Yii::$app->set('proxyPool', $proxyPool = new ProxyPool());
-        }
+        $proxyPool = Yii::$app->get('proxyPool');
+        
         $this->dropTable($proxyPool->connectionTable);
         $this->dropTable($proxyPool->proxyTable);
         $this->dropTable($proxyPool->domainTable);
