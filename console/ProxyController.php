@@ -9,6 +9,7 @@ namespace conquer\proxypool\console;
 
 use conquer\proxypool\models\Proxy;
 use conquer\proxypool\models\Connection;
+use conquer\proxypool\models\Domain;
 
 /**
  * 
@@ -27,6 +28,27 @@ class ProxyController extends \yii\console\Controller
      */
     public function actionCheck($limit = 500, $force = null)
     {
-        Connection::checkProxies($limit, $force);
+        $proxyPool = Yii::$app->get('proxyPool');
+        
+        Domain::initProxies();
+        
+        if ($force) {
+            $time = null;
+        } else {
+            $time = time() - $proxyPool->checkInterval;
+        }
+        /* @var $connections Connection[] */
+        $connections = Connection::find()
+            ->from(['t' => static::tableName()])
+            ->where(['<', 'error_cnt', $proxyPool->maxErrors])
+            ->andFilterWhere(['<', 't.updated_at', $time])
+            ->innerJoinWith(['proxy', 'domain'])
+            ->andWhere(['is not', 'check_url', null])
+            ->indexBy('connection_id')
+            ->limit($limit)
+            ->orderBy(['t.updated_at' => SORT_ASC])
+            ->all();
+        
+        Connection::checkProxies($connections);
     }
 }

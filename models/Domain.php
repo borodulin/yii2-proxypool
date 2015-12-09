@@ -13,6 +13,7 @@ use yii\base\Exception;
 use yii\helpers\VarDumper;
 /**
  * 
+ * @property integer $domain_id
  * @property string $domain_name
  * @property string $check_url
  * @property string $check_content
@@ -44,7 +45,7 @@ class Domain extends \yii\db\ActiveRecord
     {
         return [
             [['domain_name'], 'required'],
-            [['created_at', 'updated_at'], 'integer'],
+            [['domain_id', 'created_at', 'updated_at'], 'integer'],
             [['domain_name', 'check_url', 'check_content'], 'string', 'max' => 255],
             [['check_url'], 'url'],
             [['domain_name'], 'unique']
