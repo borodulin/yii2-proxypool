@@ -39,7 +39,7 @@ class ProxyController extends \yii\console\Controller
         }
         /* @var $connections Connection[] */
         $connections = Connection::find()
-            ->from(['t' => static::tableName()])
+            ->from(['t' => Connection::tableName()])
             ->where(['<', 'error_cnt', $proxyPool->maxErrors])
             ->andFilterWhere(['<', 't.updated_at', $time])
             ->innerJoinWith(['proxy', 'domain'])
