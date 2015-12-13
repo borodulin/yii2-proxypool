@@ -13,7 +13,6 @@ use yii\db\ActiveQuery;
 use yii\behaviors\TimestampBehavior;
 use yii\helpers\ArrayHelper;
 use conquer\helpers\CurlTrait;
-use conquer\proxypool\ProxyPool;
 
 /**
  * @property integer $connection_id

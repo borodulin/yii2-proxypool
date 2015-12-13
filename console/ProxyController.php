@@ -28,7 +28,7 @@ class ProxyController extends \yii\console\Controller
      */
     public function actionCheck($limit = 500, $force = null)
     {
-        $proxyPool = Yii::$app->get('proxyPool');
+        $proxyPool = \Yii::$app->get('proxyPool');
         
         Domain::initProxies();
         
