@@ -17,6 +17,8 @@ class ProxyPool extends Component implements \yii\base\BootstrapInterface
     public $maxErrors = 20;
     
     public $checkInterval = 21600;
+    
+    public $id = 'proxy';
  
     /**
      * @inheritdoc
