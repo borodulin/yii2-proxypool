@@ -279,7 +279,7 @@ class Connection extends \yii\db\ActiveRecord
             foreach ($connections as $connection) {
                 $connection->request_cnt++;
                 if ($connection->errorCode) {
-                    $connection->error($this->errorMessage);
+                    $connection->error($connection->errorMessage);
                 } else {
                     $connection->success();
                     $result++;
