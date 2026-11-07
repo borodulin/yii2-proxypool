@@ -5,6 +5,7 @@
     "homepage": "https://github.com/borodulin/yii2-proxypool",
     "type": "yii2-extension",
     "license": "MIT",
+    "abandoned": true,
     "support": {
         "issues": "https://github.com/borodulin/yii2-proxypool/issues",
         "source": "https://github.com/borodulin/yii2-proxypool"
